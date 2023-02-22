@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import 'source-map-support/register'
 import * as cdk from 'aws-cdk-lib'
-import { CdkBasicsCloudWatchEventsLambdaStack } from '../src/cdk-basics-cloudwatch-events-lambda-stack'
+import { CdkBasicsCloudWatchEventsLambdaStack } from '../stack/cdk-basics-cloudwatch-events-lambda-stack'
 
 const app = new cdk.App()
 new CdkBasicsCloudWatchEventsLambdaStack(app, 'CdkBasicsCloudWatchEventsLambdaStack', {

@@ -3,15 +3,14 @@ node_modules
 .cdk.staging
 cdk.out
 /bundle
-/dist/bin
-/dist/lib
-/dist/stack
-/dist/test
+/dist
 
 *.js
 *.d.ts
 *.map
-cdk.context.json
+cdk.json
+package.json
+package-lock.json
 
 !.eslintrc.js
 !jest.config.js
