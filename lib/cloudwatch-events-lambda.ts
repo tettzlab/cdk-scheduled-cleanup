@@ -1,17 +1,26 @@
-import { Stack, StackProps, RemovalPolicy, Duration } from 'aws-cdk-lib'
-import * as s3 from 'aws-cdk-lib/aws-s3'
+import { Stack, StackProps, RemovalPolicy, Duration, Size } from 'aws-cdk-lib'
+import * as iam from 'aws-cdk-lib/aws-iam'
+import * as events from 'aws-cdk-lib/aws-events'
 import * as lambda from 'aws-cdk-lib/aws-lambda'
-import { S3EventSource, S3EventSourceProps } from 'aws-cdk-lib/aws-lambda-event-sources'
+import * as targets from 'aws-cdk-lib/aws-events-targets'
 import { Construct } from 'constructs'
 
 interface CloudWatchEventsLambdaProps extends StackProps {
+  schedule: events.Schedule
+  lambdaCodePath?: string
+  lambdaHandler?: string
+  environment?: { [key: string]: string }
+  timeout?: Duration
+  memorySize?: number
+  ephemeralStorageSize?: Size
   lambdaProps?: lambda.FunctionProps
+  lambdaPolicyStatements?: iam.PolicyStatement[]
 }
 
 export class CloudWatchEventsLambda extends Construct {
   public readonly lambdaFunc: lambda.Function
 
-  public constructor(scope: Construct, id: string, props?: CloudWatchEventsLambdaProps) {
+  public constructor(scope: Construct, id: string, props: CloudWatchEventsLambdaProps) {
     super(scope, id)
 
     // TODO: create lambda function.
