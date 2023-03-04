@@ -1,89 +1,94 @@
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { Context, ScheduledEvent } from 'aws-lambda'
-import AWS from 'aws-sdk'
+import * as iam from '@aws-sdk/client-iam'
 
-AWS.config.update({ region: process.env.REGION })
-const iam = new AWS.IAM({ apiVersion: '2010-05-08' })
-// const s3 = new AWS.S3({ apiVersion: '2006-03-01' });
+const region = process.env.REGION
+const iamClient = new iam.IAMClient({ region })
 
-async function iamListUsers() {
+async function iamListUsers(): Promise<iam.User[]> {
   const list = []
-  let ret = await iam
-    .listUsers({
+
+  let ret = await iamClient.send(
+    new iam.ListUsersCommand({
       MaxItems: 1000,
     })
-    .promise()
+  )
   if (ret.Users && ret.Users.length) {
     list.push(...ret.Users)
   }
   while (ret.IsTruncated) {
-    ret = await iam
-      .listUsers({
+    ret = await iamClient.send(
+      new iam.ListUsersCommand({
         MaxItems: 1000,
         Marker: ret.Marker,
       })
-      .promise()
+    )
     if (ret.Users && ret.Users.length) {
       list.push(...ret.Users)
     }
   }
+  console.log('iamListUsers:', list)
   return list
 }
 
-async function iamListAccessKeys({ userName }: { userName: string }) {
-  console.log('iamListAccessKeys - userName:', userName)
+async function iamListAccessKeys(params: { userName: string }): Promise<iam.AccessKeyMetadata[]> {
+  const { userName } = params
+  console.log('iamListAccessKeys:', JSON.stringify(params, null, 2))
   const list = []
-  let ret = await iam
-    .listAccessKeys({
+  let ret = await iamClient.send(
+    new iam.ListAccessKeysCommand({
       UserName: userName,
       MaxItems: 1000,
     })
-    .promise()
+  )
   if (ret.AccessKeyMetadata && ret.AccessKeyMetadata.length) {
     list.push(...ret.AccessKeyMetadata)
   }
   while (ret.IsTruncated) {
-    ret = await iam
-      .listAccessKeys({
+    ret = await iamClient.send(
+      new iam.ListAccessKeysCommand({
         UserName: userName,
         MaxItems: 1000,
         Marker: ret.Marker,
       })
-      .promise()
+    )
     if (ret.AccessKeyMetadata && ret.AccessKeyMetadata.length) {
       list.push(...ret.AccessKeyMetadata)
     }
   }
-  console.log('iamListAccessKeys - list:', list)
+  console.log('iamListAccessKeys:', list)
   return list
 }
 
-async function iamDeleteAccessKey(options: { userName: string; accessKeyId: string }) {
-  const { userName, accessKeyId } = options
-  console.log('iamDeleteAccessKey - userName:', userName)
-  console.log('iamDeleteAccessKey - accessKeyId:', accessKeyId)
-  const ret = await iam
-    .deleteAccessKey({
+async function iamDeleteAccessKey(params: {
+  userName: string
+  accessKeyId: string
+}): Promise<iam.DeleteAccessKeyCommandOutput> {
+  const { userName, accessKeyId } = params
+  console.log('iamDeleteAccessKey:', JSON.stringify(params, null, 2))
+  const ret = await iamClient.send(
+    new iam.DeleteAccessKeyCommand({
       UserName: userName,
       AccessKeyId: accessKeyId,
     })
-    .promise()
-  console.log('iamDeleteAccessKey - ret:', ret)
+  )
+  console.log('iamDeleteAccessKey:', ret)
   return ret
 }
 
-async function iamDeactivateAccessKey(options: { userName: string; accessKeyId: string }) {
-  const { userName, accessKeyId } = options
-  console.log('iamDeactivateAccessKey - userName:', userName)
-  console.log('iamDeactivateAccessKey - accessKeyId:', accessKeyId)
-  const ret = await iam
-    .updateAccessKey({
+async function iamDeactivateAccessKey(params: {
+  userName: string
+  accessKeyId: string
+}): Promise<iam.UpdateAccessKeyCommandOutput> {
+  const { userName, accessKeyId } = params
+  console.log('iamDeactivateAccessKey:', JSON.stringify(params, null, 2))
+  const ret = await iamClient.send(
+    new iam.UpdateAccessKeyCommand({
       UserName: userName,
       AccessKeyId: accessKeyId,
       Status: 'Inactive',
     })
-    .promise()
-  console.log('iamDeactivateAccessKey - ret:', ret)
+  )
+  console.log('iamDeactivateAccessKey:', ret)
   return ret
 }
 
@@ -91,20 +96,16 @@ export async function handler(event: ScheduledEvent, context: Context): Promise<
   try {
     console.log(`Event: ${JSON.stringify(event, null, 2)}`)
     console.log(`Context: ${JSON.stringify(context, null, 2)}`)
-
-    console.log(event)
     console.log('REGION', process.env.REGION)
 
     const users = await iamListUsers()
-    console.log(users)
     for (let i = 0, nUsers = users.length; i < nUsers; i++) {
       const user = users[i]
-      console.log('user:', user)
-      const keys = await iamListAccessKeys({ userName: user.UserName })
-      console.log('keys:', keys)
+      console.log('processing user:', user)
+      const keys = await iamListAccessKeys({ userName: user.UserName ?? '' })
       for (let k = 0, nKeys = keys.length; k < nKeys; k++) {
         const key = keys[k]
-        console.log('key:', key)
+        console.log('processing key:', key)
         if (key.Status === 'Inactive') {
           await iamDeleteAccessKey({
             userName: key.UserName as string,
@@ -118,6 +119,7 @@ export async function handler(event: ScheduledEvent, context: Context): Promise<
         }
       }
     }
+    console.log('done')
 
     return {
       statusCode: 200,
@@ -132,16 +134,19 @@ export async function handler(event: ScheduledEvent, context: Context): Promise<
   }
 }
 
-// {
-//   "version": "0",
-//   "id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxfff",
-//   "detail-type": "Scheduled Event",
-//   "source": "aws.events",
-//   "account": "012345678901",
-//   "time": "2023-02-22T15:25:00Z",
-//   "region": "us-east-1",
-//   "resources": [
-//       "arn:aws:events:us-east-1:012345678901:rule/CdkBasicsCloudWatchEvents-CloudWatchEventsLambdasc-XXXXXXXXXXXXX"
+// const testEvent = {
+//   version: '0',
+//   id: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxfff',
+//   'detail-type': 'Scheduled Event',
+//   source: 'aws.events',
+//   account: '012345678901',
+//   time: '2023-02-22T15:25:00Z',
+//   region: 'us-east-1',
+//   resources: [
+//     'arn:aws:events:us-east-1:012345678901:rule/CdkBasicsCloudWatchEvents-CloudWatchEventsLambdasc-XXXXXXXXXXXXX',
 //   ],
-//   "detail": {}
+//   detail: {},
 // }
+// ;(async function () {
+//   return await handler(testEvent as ScheduledEvent, {} as Context)
+// })()
