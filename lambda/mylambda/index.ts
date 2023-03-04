@@ -143,7 +143,7 @@ export async function handler(event: ScheduledEvent, context: Context): Promise<
 //   time: '2023-02-22T15:25:00Z',
 //   region: 'us-east-1',
 //   resources: [
-//     'arn:aws:events:us-east-1:012345678901:rule/CdkBasicsCloudWatchEvents-CloudWatchEventsLambdasc-XXXXXXXXXXXXX',
+//     'arn:aws:events:us-east-1:012345678901:rule/CdkScheduledCleanup-CloudWatchEventsLambdasc-XXXXXXXXXXXXX',
 //   ],
 //   detail: {},
 // }

@@ -1,16 +1,16 @@
 {
-  "name": "cdk-basics-cloudwatch-events-lambda",
+  "name": "cdk-scheduled-cleanup",
   "version": "0.1.0",
   "author": "@tettzlab",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/tettzlab/cdk-basics-cloudwatch-events-lambda.git"
+    "url": "https://github.com/tettzlab/cdk-scheduled-cleanup.git"
   },
   "main": "dist/lib/index.js",
   "types": "dist/lib/index.d.ts",
   "bin": {
-    "cdk-basics-cloudwatch-events-lambda": "bin/cdk-basics-cloudwatch-events-lambda.js"
+    "cdk-scheduled-cleanup": "bin/cdk-scheduled-cleanup.js"
   },
   "scripts": {
     "build": "npm run tsc && npm run bundle && npm run test && npm run synth",

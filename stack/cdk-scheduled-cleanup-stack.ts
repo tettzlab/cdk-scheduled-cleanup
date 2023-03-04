@@ -4,7 +4,7 @@ import * as iam from 'aws-cdk-lib/aws-iam'
 import { Construct } from 'constructs'
 import { CloudWatchEventsLambda } from '../lib/cloudwatch-events-lambda'
 
-export class CdkBasicsCloudWatchEventsLambdaStack extends Stack {
+export class CdkScheduledCleanupStack extends Stack {
   public constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props)
 

@@ -1,5 +1,5 @@
 {
-  "app": "npx ts-node --prefer-ts-exts bin/cdk-basics-cloudwatch-events-lambda.ts",
+  "app": "npx ts-node --prefer-ts-exts bin/cdk-scheduled-cleanup.ts",
   "watch": {
     "include": [
       "**"
